@@ -3,193 +3,163 @@ class SurveyTemplate {
   final String? description;
   final bool collectEmail;
   final bool shuffleQuestions;
+  final bool? showProgress;
+  final bool? isQuiz;
   final String? confirmationMessage;
-  final String? destinationSpreadsheetId; // 기존 스프레드시트에 연결하려면 지정
+
   final List<SurveyItem> items;
 
   SurveyTemplate({
     required this.title,
     this.description,
-    this.collectEmail = true,
+    this.collectEmail = false,
     this.shuffleQuestions = false,
+    this.showProgress,
+    this.isQuiz,
     this.confirmationMessage,
-    this.destinationSpreadsheetId,
-    this.items = const [],
+    required this.items,
   });
+
+  factory SurveyTemplate.sample() => SurveyTemplate(
+    title: '고객만족도 설문(Flutter)',
+    description: '약 2~3분 소요됩니다.',
+    collectEmail: true,
+    shuffleQuestions: false,
+    confirmationMessage: '응답 감사합니다!',
+    items: [
+      SurveyItem.mc(
+        title: '서비스 만족도',
+        required: true,
+        options: ['매우만족', '만족', '보통', '불만족'],
+      ),
+      SurveyItem.text(
+        title: '이메일을 남겨주세요',
+        required: true,
+        validation: 'EMAIL',
+      ),
+      SurveyItem.checkbox(
+        title: '주로 사용하는 기능(복수선택)',
+        required: true,
+        options: ['검색', '통계', '내보내기'],
+      ),
+      SurveyItem.scale(
+        title: '재이용 의향(1~5)',
+        required: true,
+        bounds: const [1, 5],
+        labels: const ['낮음', '높음'],
+      ),
+      SurveyItem.paragraph(title: '자유 의견', required: false),
+      SurveyItem.date(title: '최근 방문일', required: false),
+    ],
+  );
 
   Map<String, dynamic> toJson() => {
     'title': title,
-    if (description != null) 'description': description,
+    'description': description,
     'collectEmail': collectEmail,
     'shuffleQuestions': shuffleQuestions,
-    if (confirmationMessage != null) 'confirmationMessage': confirmationMessage,
-    if (destinationSpreadsheetId != null)
-      'destinationSpreadsheetId': destinationSpreadsheetId,
+    if (showProgress != null) 'showProgress': showProgress,
+    if (isQuiz != null) 'isQuiz': isQuiz,
+    if (confirmationMessage != null)
+      'confirmationMessage': confirmationMessage,
     'items': items.map((e) => e.toJson()).toList(),
   };
-
-  static SurveyTemplate sample() {
-    return SurveyTemplate(
-      title: '고객만족도 설문(Flutter)',
-      description: '약 2~3분 소요됩니다.',
-      collectEmail: true,
-      shuffleQuestions: false,
-      items: [
-        SurveyItem.mc(
-          title: '서비스 만족도',
-          required: true,
-          options: ['매우만족', '만족', '보통', '불만족'],
-        ),
-        SurveyItem.text(
-          title: '이메일을 남겨주세요',
-          required: true,
-          validation: TextValidation.email,
-        ),
-        SurveyItem.checkbox(
-          title: '주로 사용하는 기능(복수선택)',
-          required: true,
-          options: ['검색', '통계', '내보내기'],
-        ),
-        SurveyItem.scale(
-          title: '재이용 의향(1~5)',
-          boundsMin: 1,
-          boundsMax: 5,
-          lowLabel: '낮음',
-          highLabel: '높음',
-          required: true,
-        ),
-        SurveyItem.paragraph(title: '개선이 필요한 점을 자유롭게 적어주세요'),
-        SurveyItem.date(title: '최근 방문일'),
-      ],
-    );
-  }
 }
 
-enum ItemType { mc, checkbox, text, paragraph, scale, date, time }
-enum TextValidation { none, email, number }
-
 class SurveyItem {
-  final ItemType type;
+  final String type; // MC, CHECKBOX, DROPDOWN, TEXT, PARAGRAPH, SCALE, DATE, TIME, DATETIME, SECTION
   final String title;
   final bool required;
-  final List<String> options; // mc/checkbox
-  final TextValidation validation; // text
-  final int? boundsMin; // scale
-  final int? boundsMax; // scale
-  final String? lowLabel; // scale
-  final String? highLabel; // scale
+  final List<String>? options;
+  final bool? shuffle;
+  final List<int>? bounds;
+  final List<String>? labels;
+  final String? validation;
 
-  SurveyItem._({
+  SurveyItem({
     required this.type,
     required this.title,
     required this.required,
-    this.options = const [],
-    this.validation = TextValidation.none,
-    this.boundsMin,
-    this.boundsMax,
-    this.lowLabel,
-    this.highLabel,
+    this.options,
+    this.shuffle,
+    this.bounds,
+    this.labels,
+    this.validation,
   });
 
   factory SurveyItem.mc({
     required String title,
     required bool required,
     required List<String> options,
+    bool? shuffle,
   }) =>
-      SurveyItem._(
-        type: ItemType.mc,
+      SurveyItem(
+        type: 'MC',
         title: title,
         required: required,
         options: options,
+        shuffle: shuffle,
       );
 
   factory SurveyItem.checkbox({
     required String title,
     required bool required,
     required List<String> options,
+    bool? shuffle,
   }) =>
-      SurveyItem._(
-        type: ItemType.checkbox,
+      SurveyItem(
+        type: 'CHECKBOX',
         title: title,
         required: required,
         options: options,
+        shuffle: shuffle,
       );
+
+  factory SurveyItem.dropdown({
+    required String title,
+    required bool required,
+    required List<String> options,
+  }) =>
+      SurveyItem(type: 'DROPDOWN', title: title, required: required, options: options);
 
   factory SurveyItem.text({
     required String title,
-    bool required = false,
-    TextValidation validation = TextValidation.none,
+    required bool required,
+    String? validation, // EMAIL | NUMBER | URL
   }) =>
-      SurveyItem._(
-        type: ItemType.text,
-        title: title,
-        required: required,
-        validation: validation,
-      );
+      SurveyItem(type: 'TEXT', title: title, required: required, validation: validation);
 
-  factory SurveyItem.paragraph({required String title, bool required = false}) =>
-      SurveyItem._(type: ItemType.paragraph, title: title, required: required);
+  factory SurveyItem.paragraph({
+    required String title,
+    required bool required,
+  }) =>
+      SurveyItem(type: 'PARAGRAPH', title: title, required: required);
 
   factory SurveyItem.scale({
     required String title,
-    bool required = false,
-    required int boundsMin,
-    required int boundsMax,
-    String? lowLabel,
-    String? highLabel,
+    required bool required,
+    required List<int> bounds, // [min, max]
+    List<String>? labels, // [left, right]
   }) =>
-      SurveyItem._(
-        type: ItemType.scale,
+      SurveyItem(
+        type: 'SCALE',
         title: title,
         required: required,
-        boundsMin: boundsMin,
-        boundsMax: boundsMax,
-        lowLabel: lowLabel,
-        highLabel: highLabel,
+        bounds: bounds,
+        labels: labels,
       );
 
-  factory SurveyItem.date({required String title, bool required = false}) =>
-      SurveyItem._(type: ItemType.date, title: title, required: required);
+  factory SurveyItem.date({required String title, required bool required}) =>
+      SurveyItem(type: 'DATE', title: title, required: required);
 
-  factory SurveyItem.time({required String title, bool required = false}) =>
-      SurveyItem._(type: ItemType.time, title: title, required: required);
-
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{
-      'title': title,
-      'required': required,
-    };
-    switch (type) {
-      case ItemType.mc:
-        map['type'] = 'MC';
-        map['options'] = options;
-        break;
-      case ItemType.checkbox:
-        map['type'] = 'CHECKBOX';
-        map['options'] = options;
-        break;
-      case ItemType.text:
-        map['type'] = 'TEXT';
-        if (validation == TextValidation.email) map['validation'] = 'EMAIL';
-        if (validation == TextValidation.number) map['validation'] = 'NUMBER';
-        break;
-      case ItemType.paragraph:
-        map['type'] = 'PARAGRAPH';
-        break;
-      case ItemType.scale:
-        map['type'] = 'SCALE';
-        map['bounds'] = [boundsMin, boundsMax];
-        if (lowLabel != null && highLabel != null) {
-          map['labels'] = [lowLabel, highLabel];
-        }
-        break;
-      case ItemType.date:
-        map['type'] = 'DATE';
-        break;
-      case ItemType.time:
-        map['type'] = 'TIME';
-        break;
-    }
-    return map;
-  }
+  Map<String, dynamic> toJson() => {
+    'type': type,
+    'title': title,
+    'required': required,
+    if (options != null) 'options': options,
+    if (shuffle != null) 'shuffle': shuffle,
+    if (bounds != null) 'bounds': bounds,
+    if (labels != null) 'labels': labels,
+    if (validation != null) 'validation': validation,
+  };
 }

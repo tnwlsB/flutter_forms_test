@@ -12,7 +12,7 @@ class Env {
 
   /// GAS Web App /exec URL (A안)
   static const String gasWebAppUrl =
-      'https://script.google.com/macros/s/AKfycbxGjLzniNIeeWBIVHYbpIcAdJSDXASR1PRZVvSBEaPotJdxnW_-YNGbD48B0paWG-w6/exec';
+      'https://script.google.com/macros/s/AKfycbwhC2gswnoUbXnMr02UhLhsI3mvN_C4ZkE3ZVzCS5rP97mHS2osZOi-hTwufkrtMQY/exec';
 
   /// GAS 호출 시 간단 shared secret (선택)
   static const String gasSecret = 'MY_SECRET';

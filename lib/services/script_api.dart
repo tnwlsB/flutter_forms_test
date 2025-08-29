@@ -8,6 +8,7 @@ class ScriptApi {
   final http.Client _client;
   ScriptApi({http.Client? client}) : _client = client ?? http.Client();
 
+
   Future<Map<String, dynamic>> createSurvey(SurveyTemplate template, {String? secret}) async {
     final uri = Uri.parse(Env.gasWebAppUrl);
     final resp = await _client.get(uri);
